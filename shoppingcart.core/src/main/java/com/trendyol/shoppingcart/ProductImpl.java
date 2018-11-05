@@ -15,6 +15,7 @@ public class ProductImpl implements Product {
 		this.title = title;
 		this.price = price;
 		this.category = category;
+		this.category.addProduct(this, 0);
 	}
 
 	@Override

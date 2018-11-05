@@ -10,6 +10,7 @@ import java.util.*;
  */
 public class CategoryImpl implements Category {
 	private final String title;
+	private Category parent;
 	private Map<Product, Integer> products = new HashMap<>();
 	private List<Campaign> campaigns = new ArrayList<>();
 
@@ -20,6 +21,16 @@ public class CategoryImpl implements Category {
 	@Override
 	public String getTitle() {
 		return title;
+	}
+
+	@Override
+	public Category getParent() {
+		return parent;
+	}
+
+	@Override
+	public void setParent(Category parent) {
+		this.parent = parent;
 	}
 
 	@Override
@@ -45,11 +56,11 @@ public class CategoryImpl implements Category {
 	@Override
 	public BigDecimal calculateDiscounts() {
 		Integer categoryProductQuantity = 0;
-		BigDecimal categoryTotalAmount = new BigDecimal(0);
+		BigDecimal categoryTotalAmount = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
 		for (Map.Entry<Product, Integer> productEntry : products.entrySet()) {
 			double productPrice = productEntry.getKey().getPrice();
 			Integer productQuantity = productEntry.getValue();
-			categoryTotalAmount = categoryTotalAmount.add(BigDecimal.valueOf(productPrice).multiply(BigDecimal.valueOf(productQuantity)));
+			categoryTotalAmount = categoryTotalAmount.add(BigDecimal.valueOf(productPrice).multiply(BigDecimal.valueOf(productQuantity))).setScale(2, BigDecimal.ROUND_HALF_UP);
 			categoryProductQuantity += productQuantity;
 		}
 
@@ -64,7 +75,7 @@ public class CategoryImpl implements Category {
 			}
 		}
 
-		BigDecimal discount = new BigDecimal(0);
+		BigDecimal discount = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
 		for (Map.Entry<DiscountType, Campaign> campaignEntry : applicableCampaigns.entrySet()) {
 			Campaign campaign = campaignEntry.getValue();
 			if (DiscountType.AMOUNT.equals(campaign.getDiscountType())) {

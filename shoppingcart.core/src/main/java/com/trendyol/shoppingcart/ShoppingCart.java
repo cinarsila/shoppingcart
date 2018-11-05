@@ -11,9 +11,9 @@ import java.util.stream.Collectors;
  */
 public class ShoppingCart {
 	private final Map<String, Category> categories = new HashMap<>();
-	private BigDecimal totalAmount = new BigDecimal(0);
-	private BigDecimal campaignDiscount = new BigDecimal(0);
-	private BigDecimal couponDiscount = new BigDecimal(0);
+	private BigDecimal totalAmount = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+	private BigDecimal campaignDiscount = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+	private BigDecimal couponDiscount = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
 	private BigDecimal deliveryCost;
 
 	public void addProduct(Product product, int quantity) {
@@ -31,7 +31,17 @@ public class ShoppingCart {
 			category.addProduct(product, quantity);
 		}
 
-		totalAmount = totalAmount.add(BigDecimal.valueOf(product.getPrice()).multiply(BigDecimal.valueOf(quantity)));
+		totalAmount = totalAmount.add(BigDecimal.valueOf(product.getPrice()).multiply(BigDecimal.valueOf(quantity))).setScale(2, BigDecimal.ROUND_HALF_UP);
+	}
+
+	public boolean hasProduct(Product product) {
+		return getProductQuantity(product) != null;
+	}
+
+	public Integer getProductQuantity(Product product) {
+		String key = product.getCategory().getTitle();
+		Category category = categories.get(key);
+		return category.getProducts().get(product);
 	}
 
 	public void applyDiscounts(Campaign... campaigns) {
@@ -41,34 +51,27 @@ public class ShoppingCart {
 		categories.forEach((key, category) -> category.applyDiscounts(campaigns));
 		for (Map.Entry<String, Category> categoryEntry : categories.entrySet()) {
 			Category category = categoryEntry.getValue();
-			campaignDiscount = campaignDiscount.add(category.calculateDiscounts());
+			campaignDiscount = campaignDiscount.add(category.calculateDiscounts()).setScale(2, BigDecimal.ROUND_HALF_UP);
 		}
 	}
 
 	public void applyCoupon(Coupon coupon) {
-		if (coupon == null || this.totalAmount.compareTo(BigDecimal.valueOf(coupon.getMinimumCartAmount())) < 1) {
+		if (coupon == null || this.totalAmount.compareTo(BigDecimal.valueOf(coupon.getMinimumCartAmount())) < 0) {
 			return;
 		}
 		this.couponDiscount = coupon.calculateDiscounts(this.totalAmount);
 	}
 
 	public long getNumberOfDeliveries() {
-//		productContainers.entrySet().stream().collect(Collectors.toSet(p -> p.getValue().getProduct().getCategory()));
-//		Set<Category> uniqueCategories = new HashSet<>();
-//		productContainers.entrySet().stream().filter(p -> uniqueCategories.add(p.getValue().getProduct().getCategory())).collect(Collectors.toList());
-//		return uniqueCategories.size();
 		return categories.size();
 	}
 
 	public long getNumberOfProducts() {
-//		Set<String> uniqueProducts = new HashSet<>();
-//		productContainers.entrySet().stream().filter(p -> uniqueProducts.add(p.getValue().getProduct().getTitle())).collect(Collectors.toList());
-//		return uniqueProducts.size();
 		return categories.entrySet().stream().flatMap(c -> c.getValue().getProducts().entrySet().stream()).collect(Collectors.toList()).size();
 	}
 
 	public String getTotalAmountAfterDiscounts() {
-		return totalAmount.subtract(campaignDiscount).subtract(couponDiscount).toString();
+		return totalAmount.subtract(campaignDiscount).subtract(couponDiscount).setScale(2, BigDecimal.ROUND_HALF_UP).toString();
 	}
 
 	public BigDecimal getCouponDiscount() {
@@ -97,19 +100,11 @@ public class ShoppingCart {
 			for (Map.Entry<Product, Integer> productEntry : category.getProducts().entrySet()) {
 				Product product = productEntry.getKey();
 				Integer quantity = productEntry.getValue();
-				String totalPrice = BigDecimal.valueOf(product.getPrice()).multiply(BigDecimal.valueOf(quantity)).toString();
+				String totalPrice = BigDecimal.valueOf(product.getPrice()).multiply(BigDecimal.valueOf(quantity)).setScale(2, BigDecimal.ROUND_HALF_UP).toString();
 				String totalDiscount = getCouponDiscount().add(getCampaignDiscount()).toString();
 				System.out.format("| %-15s | %-15s|%15s |%15s |%15s |%15s |%n", category.getTitle(), product.getTitle(), quantity, product.getPrice(), totalPrice, totalDiscount);
 			}
 		}
 		System.out.format("+%17s+%16s+%16s+%16s+%16s+%16s+%n", "-----------------", "----------------", "----------------", "----------------", "----------------", "----------------");
-
-//		for (Map.Entry<String, ProductContainer> productContainerEntry : productContainers.entrySet()) {
-//			ProductContainer productContainer = productContainerEntry.getValue();
-//			Product product = productContainer.getProduct();
-//			int quantity = productContainer.getQuantity();
-//			double totalDiscounts = getCouponDiscount() + getCampaignDiscount();
-//			System.out.printf("%s, %d, %s, %s, %s%n", product.getTitle(), quantity, product.getPrice(), totalAmount, totalDiscounts);
-//		}
 	}
 }

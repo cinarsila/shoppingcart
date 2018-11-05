@@ -22,9 +22,9 @@ public class CouponImpl implements Coupon {
 	@Override
 	public BigDecimal calculateDiscounts(BigDecimal totalAmount) {
 		if (DiscountType.RATE.equals(this.discountType)) {
-			return totalAmount.multiply(BigDecimal.valueOf(percentage).divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP));
+			return totalAmount.multiply(BigDecimal.valueOf(percentage)).divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
 		}
-		return new BigDecimal(0);
+		return new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
 	}
 
 	@Override

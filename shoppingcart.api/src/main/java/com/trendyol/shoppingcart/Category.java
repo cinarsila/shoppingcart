@@ -12,6 +12,10 @@ public interface Category {
 
 	String getTitle();
 
+	Category getParent();
+
+	void setParent(Category parent);
+
 	Map<Product, Integer> getProducts();
 
 	void addProduct(Product product, Integer quantity);
